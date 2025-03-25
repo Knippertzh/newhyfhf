@@ -5,7 +5,6 @@ import { createContext, useContext, useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 // These imports are only used for types
 import type { Role } from '@prisma/client'
-import type bcrypt from 'bcrypt'
 
 type User = {
   id: string
@@ -17,7 +16,7 @@ type User = {
 type AuthContextType = {
   user: User
   login: (email: string, password: string) => Promise<void>
-  adminLogin: (username: string, password: string) => Promise<void>
+  adminLogin: (email: string, password: string) => Promise<void>
   logout: () => void
   isLoading: boolean
 }
@@ -99,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const adminLogin = async (username: string, password: string) => {
+  const adminLogin = async (email: string, password: string) => {
     setIsLoading(true)
     try {
       // Use fetch to call a server API endpoint instead of direct Prisma usage
@@ -108,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
       
       if (!response.ok) {
@@ -151,4 +150,3 @@ export function useAuth() {
   }
   return context
 }
-

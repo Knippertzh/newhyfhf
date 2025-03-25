@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
@@ -31,7 +32,7 @@ export function ExpertCard({ expert }: ExpertCardProps) {
     <Card className="bg-gray-900/50 border-gray-700 overflow-hidden">
       <CardHeader className="flex flex-row items-center gap-4 p-4">
         <div className="h-16 w-16 relative rounded-full overflow-hidden">
-          <Image src={avatarUrl || "/placeholder.svg"} alt={expert.name} fill className="object-cover" />
+          <Image src={avatarUrl || "/placeholder-user.jpg"} alt={expert.name} fill className="object-cover" />
         </div>
         <div>
           <h3 className="text-xl font-bold text-white">{expert.name}</h3>

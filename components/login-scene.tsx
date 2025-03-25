@@ -116,7 +116,7 @@ export default function LoginScene() {
       </Float>
 
       <ambientLight intensity={0.2} />
-      <Environment preset="night" />
+      <Environment files="/environments/dikhololo_night_1k.hdr" />
     </Canvas>
   )
 }

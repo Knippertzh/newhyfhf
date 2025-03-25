@@ -1,11 +1,74 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DashboardChart } from "@/components/dashboard-chart"
-import { DashboardStats } from "@/components/dashboard-stats"
-import Navbar from "@/components/navbar"
-import PageBackground from "@/components/page-background"
+"use client";
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx"
+import { DashboardChart } from "@/components/dashboard-chart.tsx"
+import { DashboardStats } from "@/components/dashboard-stats.tsx"
+import Navbar from "@/components/navbar.tsx"
+import PageBackground from "@/components/page-background.tsx"
+import { NewsCard3D } from "@/components/news-card-3d.tsx"
+import { useState, useEffect } from "react";
+
+interface Article {
+  title: string;
+  description: string;
+  url: string;
+  image?: string;
+}
+
+interface Expert {
+  personalInfo: {
+    fullName: string;
+    image: string;
+    title: string;
+  };
+}
 
 export default function DashboardPage() {
+  const [expert, setExpert] = useState<Expert | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        const response = await fetch(
+          "https://gnews.io/api/v4/top-headlines?category=ai&lang=en&country=us&max=5&q=AI&apikey=e050e098c2b318a7625b9bec0a069914"
+        );
+        const data = await response.json();
+        if (data.articles) {
+          setArticles(data.articles);
+        }
+      } catch (error) {
+        console.error("Error fetching news:", error);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  useEffect(() => {
+    async function fetchRandomExpert() {
+      try {
+        const response = await fetch('/api/experts/random');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.personalInfo?.fullName && data.personalInfo?.image && data.personalInfo?.title) {
+          setExpert(data);
+        } else {
+          console.error("Invalid expert data structure:", data);
+          setExpert(null);
+        }
+      } catch (error) {
+        console.error("Error fetching random expert:", error);
+        setExpert(null);
+      }
+    };
+
+    fetchRandomExpert();
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-black">
       <Navbar />
@@ -21,7 +84,16 @@ export default function DashboardPage() {
               <CardTitle className="text-white">Random AI Expert Example</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* AI Expert Content */}
+              {expert && expert.personalInfo && (
+                <div className="flex items-center space-x-4">
+                  <img src={expert.personalInfo.image} alt={expert.personalInfo.fullName} className="w-16 h-16 rounded-full" />
+                  <div>
+                    <h2 className="text-white text-lg">{expert.personalInfo.fullName}</h2>
+                    <p className="text-gray-400">{expert.personalInfo.title}</p>
+                    <button className="mt-2 text-purple-600 hover:underline">More</button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="bg-gray-900/70 border-gray-700">
@@ -34,10 +106,14 @@ export default function DashboardPage() {
           </Card>
           <Card className="bg-gray-900/70 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">AI Event (will follow)</CardTitle>
+              <CardTitle className="text-white">AI News</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* AI Event Content */}
+              <div className="space-y-2">
+                {articles.map((article) => (
+                  <NewsCard3D key={article.url} article={article} />
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -46,10 +122,16 @@ export default function DashboardPage() {
 
         <Tabs defaultValue="experts" className="mt-8">
           <TabsList className="bg-gray-900 border border-gray-700">
-            <TabsTrigger value="experts" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="experts"
+              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
               Experts
             </TabsTrigger>
-            <TabsTrigger value="companies" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">
+            <TabsTrigger
+              value="companies"
+              className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
               Companies
             </TabsTrigger>
             <TabsTrigger
@@ -62,7 +144,9 @@ export default function DashboardPage() {
           <TabsContent value="experts" className="mt-4">
             <Card className="bg-gray-900/70 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-white">Experts by Specialization</CardTitle>
+                <CardTitle className="text-white">
+                  Experts by Specialization
+                </CardTitle>
                 <CardDescription className="text-white">
                   Distribution of AI experts across different specialization areas
                 </CardDescription>
@@ -89,7 +173,9 @@ export default function DashboardPage() {
             <Card className="bg-gray-900/70 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">Popular Specializations</CardTitle>
-                <CardDescription className="text-white">Most common AI specializations in the database</CardDescription>
+                <CardDescription className="text-white">
+                  Most common AI specializations in the database
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <DashboardChart type="specializations" />
@@ -99,5 +185,5 @@ export default function DashboardPage() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }

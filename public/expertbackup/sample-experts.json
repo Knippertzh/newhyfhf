@@ -1,0 +1,70 @@
+[
+  {
+    "personalInfo": {
+      "fullName": "Dr. Jane Smith",
+      "title": "AI Research Scientist",
+      "email": "jane.smith@example.com",
+      "image": "https://ui-avatars.com/api/?name=Jane+Smith&background=random&size=300&bold=true&color=fff"
+    },
+    "institution": {
+      "name": "AI Research Institute",
+      "position": "Lead Researcher",
+      "department": "Natural Language Processing",
+      "website": "https://example.com"
+    },
+    "expertise": {
+      "primary": ["Natural Language Processing", "Machine Learning", "Deep Learning"],
+      "secondary": ["Computer Vision", "Reinforcement Learning"]
+    },
+    "bio": "Dr. Jane Smith is a leading researcher in the field of Natural Language Processing with over 10 years of experience developing cutting-edge AI solutions.",
+    "education": [
+      { "degree": "Ph.D. in Computer Science", "institution": "Stanford University", "year": "2015" },
+      { "degree": "M.S. in Artificial Intelligence", "institution": "MIT", "year": "2010" }
+    ],
+    "publications": [
+      { "title": "Advances in Transformer Models for NLP", "venue": "ACL Conference", "year": "2022" },
+      { "title": "Efficient Fine-tuning Methods for Large Language Models", "venue": "NeurIPS", "year": "2021" }
+    ],
+    "projects": [
+      { "name": "NLP-Boost", "description": "An open-source library for efficient NLP model training" },
+      { "name": "AI Ethics Framework", "description": "Guidelines for responsible AI development" }
+    ],
+    "website": "https://janesmith.example.com",
+    "linkedin": "https://linkedin.com/in/janesmith",
+    "twitter": "https://twitter.com/janesmith"
+  },
+  {
+    "personalInfo": {
+      "fullName": "Prof. John Doe",
+      "title": "Professor of Computer Science",
+      "email": "john.doe@example.edu",
+      "image": "https://ui-avatars.com/api/?name=John+Doe&background=random&size=300&bold=true&color=fff"
+    },
+    "institution": {
+      "name": "Tech University",
+      "position": "Department Chair",
+      "department": "Computer Science",
+      "website": "https://example.edu"
+    },
+    "expertise": {
+      "primary": ["Artificial Intelligence", "Robotics", "Computer Vision"],
+      "secondary": ["Ethics in AI", "Human-Computer Interaction"]
+    },
+    "bio": "Prof. John Doe has been at the forefront of AI and robotics research for over 15 years, with a focus on developing intelligent systems that can safely interact with humans.",
+    "education": [
+      { "degree": "Ph.D. in Robotics", "institution": "Carnegie Mellon University", "year": "2008" },
+      { "degree": "B.S. in Computer Engineering", "institution": "UC Berkeley", "year": "2003" }
+    ],
+    "publications": [
+      { "title": "Robust Vision Systems for Autonomous Robots", "venue": "ICRA", "year": "2020" },
+      { "title": "Safe Reinforcement Learning for Human-Robot Interaction", "venue": "IEEE Robotics and Automation", "year": "2019" }
+    ],
+    "projects": [
+      { "name": "SafeBot", "description": "A framework for developing safe robotic systems" },
+      { "name": "Vision-X", "description": "Advanced computer vision algorithms for real-time object detection" }
+    ],
+    "website": "https://johndoe.example.edu",
+    "linkedin": "https://linkedin.com/in/johndoe",
+    "twitter": "https://twitter.com/johndoe"
+  }
+]

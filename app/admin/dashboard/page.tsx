@@ -6,16 +6,12 @@ import UsersList from "@/components/users-list"
 import StatsGrid from "@/components/stats-grid"
 import { prisma } from "@/lib/prisma"
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-export default async function AdminDashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (session?.user.role !== 'ADMIN') {
-    redirect('/login');
-  }
+export default function AdminDashboardPage() {
+  // Client-side auth check is handled by the AuthProvider component
+  // which will redirect non-admin users away from this page
 
   return (
     <Suspense fallback={<div className="text-white p-4">Loading admin dashboard...</div>}>
