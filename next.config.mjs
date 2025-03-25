@@ -18,6 +18,16 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: [
+      'www.informatik.tu-darmstadt.de',
+      'www.cs.tu-dortmund.de',
+      'www.iais.fraunhofer.de',
+      'www.uni-bamberg.de',
+      'www.dfki.de',
+      'ui-avatars.com',
+      'logo.clearbit.com',
+      'example.com'
+    ],
   },
   experimental: {
     webpackBuildWorker: true,

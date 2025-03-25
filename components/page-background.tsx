@@ -109,7 +109,7 @@ export default function PageBackground({ intensity = "medium", color = "#5d00ff"
         </Float>
 
         <ambientLight intensity={0.2} />
-        <Environment preset="night" />
+        <Environment files="/environments/dikhololo_night_1k.hdr" />
       </Canvas>
     </div>
   )

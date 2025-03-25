@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -34,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!user) return false;
 
       // Replace with actual password verification
-      const isValid = await bcrypt.compare(password, user.passwordHash);
+      const isValid = password === user.passwordHash;
       if (isValid) {
         const userData = { email: user.email, role: user.role };
         setUser(userData);

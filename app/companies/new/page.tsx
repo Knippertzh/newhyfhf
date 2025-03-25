@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -6,9 +8,124 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, CheckCircle } from "lucide-react"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
+import { isValidUrl } from "@/lib/logo-utils"
 
 export default function NewCompanyPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const [formData, setFormData] = useState({
+    name: "",
+    industry: "",
+    location: "",
+    foundedYear: "",
+    website: "",
+    email: "",
+    description: ""
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }))
+  }
+
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      industry: value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Validate required fields
+      if (!formData.name) {
+        throw new Error("Company name is required")
+      }
+
+      // Verify logo if website is provided
+      let logoVerified = false
+      if (formData.website && isValidUrl(`https://${formData.website.replace(/^https?:\/\//, '')}`)) {
+        // Use our server-side API to verify the logo (avoids CORS issues)
+        try {
+          const websiteDomain = formData.website.replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+          const verifyResponse = await fetch(`/api/logo-verify?domain=${encodeURIComponent(websiteDomain)}`)
+          const verifyData = await verifyResponse.json()
+          
+          if (verifyData.success) {
+            logoVerified = true
+            toast({
+              title: "Logo Verification Successful",
+              description: "Company logo was successfully verified with Clearbit",
+              variant: "default",
+            })
+          }
+        } catch (logoErr) {
+          console.error('Logo verification failed:', logoErr)
+          // We don't throw here, just continue without verified logo
+        }
+      }
+
+      // Convert foundedYear to number if provided
+      const companyData = {
+        ...formData,
+        foundedYear: formData.foundedYear ? parseInt(formData.foundedYear) : undefined,
+        logoVerified
+      }
+
+      // Submit to API
+      const response = await fetch('/api/companies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(companyData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create company')
+      }
+
+      // Show success notification
+      toast({
+        title: "Save Successful",
+        description: "Company was successfully saved to the database",
+        variant: "default",
+      })
+
+      // Redirect to companies list on success
+      router.push('/companies')
+      router.refresh()
+    } catch (err) {
+      console.error('Error creating company:', err)
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      
+      // Show error notification
+      toast({
+        title: "Error",
+        description: err instanceof Error ? err.message : 'An unknown error occurred',
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-black">
       <Navbar />
@@ -30,16 +147,25 @@ export default function NewCompanyPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6">
+            {error && (
+              <div className="bg-red-500/20 border border-red-500 rounded p-3 mb-4">
+                <p className="text-red-500">{error}</p>
+              </div>
+            )}
+            
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-white">
-                    Company Name
+                    Company Name *
                   </Label>
                   <Input
                     id="name"
+                    value={formData.name}
+                    onChange={handleChange}
                     placeholder="AI Innovations Inc."
                     className="bg-gray-900/70 border-gray-700 text-white"
+                    required
                   />
                 </div>
 
@@ -47,7 +173,7 @@ export default function NewCompanyPage() {
                   <Label htmlFor="industry" className="text-white">
                     Industry
                   </Label>
-                  <Select>
+                  <Select value={formData.industry} onValueChange={handleSelectChange}>
                     <SelectTrigger className="bg-gray-900/70 border-gray-700 text-white">
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
@@ -68,16 +194,25 @@ export default function NewCompanyPage() {
                   </Label>
                   <Input
                     id="location"
+                    value={formData.location}
+                    onChange={handleChange}
                     placeholder="San Francisco, USA"
                     className="bg-gray-900/70 border-gray-700 text-white"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="founded" className="text-white">
+                  <Label htmlFor="foundedYear" className="text-white">
                     Founded Year
                   </Label>
-                  <Input id="founded" placeholder="2020" className="bg-gray-900/70 border-gray-700 text-white" />
+                  <Input 
+                    id="foundedYear" 
+                    value={formData.foundedYear}
+                    onChange={handleChange}
+                    placeholder="2020" 
+                    className="bg-gray-900/70 border-gray-700 text-white" 
+                    type="number"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -86,7 +221,9 @@ export default function NewCompanyPage() {
                   </Label>
                   <Input
                     id="website"
-                    placeholder="https://example.com"
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder="example.com"
                     className="bg-gray-900/70 border-gray-700 text-white"
                   />
                 </div>
@@ -97,6 +234,8 @@ export default function NewCompanyPage() {
                   </Label>
                   <Input
                     id="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     type="email"
                     placeholder="info@example.com"
                     className="bg-gray-900/70 border-gray-700 text-white"
@@ -110,14 +249,20 @@ export default function NewCompanyPage() {
                 </Label>
                 <Textarea
                   id="description"
+                  value={formData.description}
+                  onChange={handleChange}
                   placeholder="Enter a description of the company..."
                   className="min-h-[150px] bg-gray-900/70 border-gray-700 text-white"
                 />
               </div>
 
               <div className="flex justify-end">
-                <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700">
-                  Add Company
+                <Button 
+                  type="submit" 
+                  className="bg-purple-600 text-white hover:bg-purple-700"
+                  disabled={loading}
+                >
+                  {loading ? 'Creating...' : 'Add Company'}
                 </Button>
               </div>
             </form>
@@ -127,4 +272,3 @@ export default function NewCompanyPage() {
     </div>
   )
 }
-

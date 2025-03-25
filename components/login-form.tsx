@@ -92,12 +92,17 @@ export default function LoginForm() {
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
+            <div className="flex justify-center mt-4">
+              <img src="https://www.freeiconspng.com/uploads/images-for--facebook-icon-png-27.png" alt="Facebook" className="mx-2" style={{width: '32px', height: '32px', border: '1px solid white'}} />
+              <img src="https://static.vecteezy.com/system/resources/previews/022/498/173/non_2x/3d-linkedin-logo-icon-isolated-on-transparent-background-free-png.png" alt="LinkedIn" className="mx-2" style={{width: '32px', height: '32px', border: '1px solid white'}} />
+              <img src="https://imagepng.org/wp-content/uploads/2019/08/google-icon-1.png" alt="Google" className="mx-2" style={{width: '32px', height: '32px', border: '1px solid white'}} />
+            </div>
           </div>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col">
         <div className="text-center text-sm text-white mt-2">
-          Don&apos;t have an account?{" "}
+          Don't have an account?{" "}
           <Link href="/pre-register" className="text-primary underline-offset-4 hover:underline">
             Request Access
           </Link>

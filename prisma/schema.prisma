@@ -3,22 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
-
-
 model User {
-  id           Int      @id @default(autoincrement())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   username     String   @unique
   email        String   @unique
   passwordHash String
   role         Role     @default(USER)
+  status       String?  @default("PENDING") // Added status field
   createdAt    DateTime @default(now()) @map("createdAt")
   updatedAt    DateTime @updatedAt @map("updatedAt")
   Admin        Admin?
   Expert       Expert?
+
+  @@map("users")
 }
 
 enum Role {
@@ -27,46 +28,83 @@ enum Role {
 }
 
 model Admin {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
   User      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now()) @map("createdAt")
-  updatedAt DateTime @default(now()) @map("updatedAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  
+  @@map("admins")
 }
 
 model Expert {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  User      User     @relation(fields: [userId], references: [id])
-  bio       String?
-  createdAt DateTime @default(now()) @map("createdAt")
-  updatedAt DateTime @default(now()) @map("updatedAt")
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String            @unique @db.ObjectId
+  User            User              @relation(fields: [userId], references: [id])
+  bio             String?
+  title           String?
+  company         String?
+  companyId       String?
+  website         String?
+  linkedin        String?
+  twitter         String?
+  specializations String[]
+  education       Education[]
+  publications    Publication[]
+  projects        Project[]
+  createdAt       DateTime          @default(now()) @map("createdAt")
+  updatedAt       DateTime          @updatedAt @map("updatedAt")
+  
+  @@map("experts")
+}
+
+type Education {
+  degree      String
+  institution String
+  year        String
+}
+
+type Publication {
+  title String
+  venue String
+  year  String
+}
+
+type Project {
+  name        String
+  description String
 }
 
 model Company {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
   createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime @default(now()) @map("updatedAt")
+  updatedAt   DateTime @updatedAt @map("updatedAt")
   Tool        Tool[]
+  
+  @@map("companies")
 }
 
 model Tool {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
-  companyId   Int
+  companyId   String   @db.ObjectId
   Company     Company  @relation(fields: [companyId], references: [id])
   createdAt   DateTime @default(now()) @map("createdAt")
-  updatedAt   DateTime @default(now()) @map("updatedAt")
+  updatedAt   DateTime @updatedAt @map("updatedAt")
+  
+  @@map("tools")
 }
 
 model News {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   content   String
   author    String?
   createdAt DateTime @default(now()) @map("createdAt")
-  updatedAt DateTime @default(now()) @map("updatedAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  
+  @@map("news")
 }

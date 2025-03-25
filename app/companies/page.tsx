@@ -1,70 +1,57 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { CompanyCard } from "@/components/company-card"
+
 import Navbar from "@/components/navbar"
 import PageBackground from "@/components/page-background"
 
-// Enhanced mock data with more realistic information
-const mockCompanies = [
-  {
-    id: "1",
-    name: "DeepMind",
-    description: "AI research lab focused on developing artificial general intelligence",
-    industry: "Research",
-    location: "London, UK",
-    website: "deepmind.com",
-    expertCount: 12,
-  },
-  {
-    id: "2",
-    name: "OpenAI",
-    description: "AI research and deployment company focused on ensuring AGI benefits all of humanity",
-    industry: "Research & Products",
-    location: "San Francisco, USA",
-    website: "openai.com",
-    expertCount: 18,
-  },
-  {
-    id: "3",
-    name: "Google AI",
-    description: "Google's AI division focused on research and applications",
-    industry: "Research & Products",
-    location: "Mountain View, USA",
-    website: "ai.google",
-    expertCount: 24,
-  },
-  {
-    id: "4",
-    name: "Microsoft Research",
-    description: "Microsoft's research division with a strong focus on AI and machine learning",
-    industry: "Research & Products",
-    location: "Redmond, USA",
-    website: "microsoft.com/research",
-    expertCount: 15,
-  },
-  {
-    id: "5",
-    name: "Meta AI",
-    description: "Meta's AI research lab working on advancing artificial intelligence",
-    industry: "Research",
-    location: "Menlo Park, USA",
-    website: "ai.meta.com",
-    expertCount: 20,
-  },
-  {
-    id: "6",
-    name: "Anthropic",
-    description: "AI safety company working to build reliable, interpretable, and steerable AI systems",
-    industry: "Research & Products",
-    location: "San Francisco, USA",
-    website: "anthropic.com",
-    expertCount: 8,
-  },
-]
+import { useEffect, useState } from "react"
+
+// Define the Company type
+type Company = {
+  _id: string
+  name: string
+  description: string
+  industry: string
+  location?: string
+  website?: string
+  headquarters?: string
+  expertCount?: number
+}
 
 export default function CompaniesPage() {
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Fetch companies from the API
+    const fetchCompanies = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/companies')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch companies')
+        }
+        
+        const data = await response.json()
+        setCompanies(data)
+      } catch (err) {
+        console.error('Error fetching companies:', err)
+        setError('Failed to load companies. Please try again later.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCompanies()
+  }, [])
+
   return (
     <div className="min-h-screen bg-black">
       <PageBackground intensity="low" color="#00a3ff" />
@@ -90,13 +77,37 @@ export default function CompaniesPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockCompanies.map((company) => (
-            <CompanyCard key={company.id} company={company} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-10">
+            <p className="text-white">Loading companies...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-10">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : companies.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-white">No companies found. Add a company to get started.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {companies.map((company) => (
+              <CompanyCard 
+                key={company._id} 
+                company={{
+                  id: company._id,
+                  name: company.name,
+                  description: company.description,
+                  industry: company.industry,
+                  location: company.location || company.headquarters || 'Unknown',
+                  website: company.website,
+                  expertCount: company.expertCount || 0
+                }} 
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
 }
-

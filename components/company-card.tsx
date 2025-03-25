@@ -1,8 +1,10 @@
+"use client"
 import Link from "next/link"
 import Image from "next/image"
 import { MapPin, Users, Globe } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { generateLogoUrl, getPlaceholderLogo } from "@/lib/logo-utils"
 
 interface Company {
   id: string
@@ -22,23 +24,23 @@ interface CompanyCardProps {
 export function CompanyCard({ company }: CompanyCardProps) {
   // Generate website domain if not provided (for demo purposes)
   const domain = company.website || `${company.name.toLowerCase().replace(/\s+/g, "")}.com`
-
-  // Use Clearbit Logo API to get real company logos
-  const logoUrl = company.logoUrl || `https://logo.clearbit.com/${domain.replace(/^https?:\/\//, "")}`
+  
+  // Use our utility function to generate the logo URL
+  const logoUrl = generateLogoUrl(company.website, company.name, company.logoUrl)
 
   return (
     <Card className="bg-gray-900/50 border-gray-700">
       <CardHeader className="flex flex-row items-center gap-4">
         <div className="h-16 w-16 relative bg-white rounded-md p-2">
           <Image
-            src={logoUrl || "/placeholder.svg"}
+            src={logoUrl}
             alt={company.name}
             fill
             className="object-contain"
             onError={(e) => {
               // Fallback to placeholder if logo fetch fails
               const target = e.target as HTMLImageElement
-              target.src = `/placeholder.svg?height=80&width=80`
+              target.src = getPlaceholderLogo(80, 80)
             }}
           />
         </div>

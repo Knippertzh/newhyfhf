@@ -21,7 +21,7 @@ export default function LoginPage() {
       </div>
 
       {/* Login Form */}
-      <div className="relative z-10 flex h-full w-full items-center justify-center mt-8">
+      <div className="relative z-10 flex h-full w-full items-center justify-center mt-16">
         <div className="w-full max-w-md px-4">
           <LoginForm />
         </div>

@@ -1,5 +1,4 @@
 import { Role, PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -22,8 +21,8 @@ export const validateAdmin = async (userId: string) => {
 };
 
 export const hashPassword = async (password: string) => {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
+  // Return plain text password as requested
+  return password;
 };
 
 export const createAuthToken = (userId: string) => {
@@ -52,7 +51,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
+        const isPasswordValid = credentials.password === user.passwordHash;
 
         if (!isPasswordValid) {
           return null;
