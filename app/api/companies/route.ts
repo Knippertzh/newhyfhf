@@ -29,6 +29,12 @@ export async function POST(request: NextRequest) {
         { error: 'Company name is required' },
         { status: 400 }
       );
+    }    
+    if (!body.website) {
+      return NextResponse.json(
+        { error: 'Website is required' },
+        { status: 400 }
+      );
     }
     
     // Add timestamps and track logo verification status

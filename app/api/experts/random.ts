@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getExpertsCollection, standardizeDocument } from '@/lib/mongodb';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const collection = await getExpertsCollection();
     const count = await collection.countDocuments();

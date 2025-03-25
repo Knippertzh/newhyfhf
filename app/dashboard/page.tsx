@@ -8,6 +8,7 @@ import Navbar from "@/components/navbar.tsx"
 import PageBackground from "@/components/page-background.tsx"
 import { NewsCard3D } from "@/components/news-card-3d.tsx"
 import { useState, useEffect } from "react";
+import Notepad from "../../components/Notepad";
 
 interface Article {
   title: string;
@@ -24,8 +25,20 @@ interface Expert {
   };
 }
 
+interface Company {
+  id: string;
+  name: string;
+  description: string;
+  industry: string;
+  location: string;
+  logoUrl?: string;
+  website?: string;
+  expertCount: number;
+}
+
 export default function DashboardPage() {
   const [expert, setExpert] = useState<Expert | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
 
   useEffect(() => {
@@ -69,12 +82,36 @@ export default function DashboardPage() {
     fetchRandomExpert();
   }, []);
 
+  useEffect(() => {
+    async function fetchRandomCompany() {
+      try {
+        const response = await fetch('/api/companies/random');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.name && data.industry) {
+          setCompany(data);
+        } else {
+          console.error("Invalid company data structure:", data);
+          setCompany(null);
+        }
+      } catch (error) {
+        console.error("Error fetching random company:", error);
+        setCompany(null);
+      }
+    };
+
+    fetchRandomCompany();
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-black">
       <Navbar />
       <div className="absolute inset-0 z-0">
         <PageBackground intensity="high" />
-      </div>
+        </div>
+        <Notepad />
       <div className="container relative py-10">
         <h1 className="text-3xl font-bold mb-8 text-white">Dashboard</h1>
 
@@ -101,7 +138,23 @@ export default function DashboardPage() {
               <CardTitle className="text-white">Random Company Example</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Company Content */}
+              {company && (
+                <div className="flex items-center space-x-4">
+                  <div className="h-16 w-16 relative bg-white rounded-md p-2 flex items-center justify-center">
+                    {company.logoUrl ? (
+                      <img src={company.logoUrl} alt={company.name} className="max-h-full max-w-full" />
+                    ) : (
+                      <span className="text-gray-400 text-xs text-center">{company.name.substring(0, 2).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-white text-lg">{company.name}</h2>
+                    <p className="text-gray-400">{company.industry}</p>
+                    <p className="text-gray-400 text-sm">{company.location}</p>
+                    <button className="mt-2 text-purple-600 hover:underline">More</button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="bg-gray-900/70 border-gray-700">
