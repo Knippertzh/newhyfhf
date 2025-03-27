@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useParams } from 'next/navigation' // Import useParams
 import { ArrowLeft, Mail, Globe, Linkedin, Twitter, Building, Award, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,6 +12,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Navbar from "@/components/navbar"
 import PageBackground from "@/components/page-background"
 import AIEnrichmentButton from "@/components/AIEnrichmentButton"
+import { ExpertNewsPopup } from "@/components/expert-news-popup"
+
+// Define Article interface (consider moving to lib/types.ts later)
+interface Article {
+  title: string;
+  description?: string;
+  url: string;
+  image?: string;
+  savedAt?: Date | string; // Add savedAt timestamp
+  // Add other relevant fields if needed
+}
 
 // Define the Expert interface to match the MongoDB schema
 interface Education {
@@ -85,29 +97,24 @@ interface Expert {
   projects?: Project[];
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  savedNews?: Article[]; // Add savedNews array
   [key: string]: any;
 }
 
-export default function ExpertDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  // Unwrap params using React.use()
-const [id, setId] = useState<string | null>(null);
-
-useEffect(() => {
-  params.then(resolvedParams => {
-    setId(resolvedParams.id);
-  });
-}, [params]);
-useEffect(() => {
-  // Perform any asynchronous operations here
-  // For example, fetching expert details using the id
-}, [id]);
+// Remove params from function signature
+export default function ExpertDetailPage() { 
+  const params = useParams(); // Use the hook
+  const id = params.id as string; // Get id from the hook result, cast as string
   const [expert, setExpert] = useState<Expert | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchExpert = async () => {
+      if (!id) return;
+      
       try {
+        setLoading(true);
         // Using server-side API for client components
         const response = await fetch(`/api/experts/${id}`);
 
@@ -122,6 +129,7 @@ useEffect(() => {
         }
 
         const data = await response.json();
+        console.log('Fetched expert data:', data);
         setExpert(data);
         setLoading(false);
       } catch (err) {
@@ -133,6 +141,36 @@ useEffect(() => {
 
     fetchExpert();
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black">
+        <PageBackground intensity="low" />
+        <Navbar />
+        <div className="container py-10">
+          <h1 className="text-3xl font-bold text-white">Loading expert data...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black">
+        <PageBackground intensity="low" />
+        <Navbar />
+        <div className="container py-10">
+          <h1 className="text-3xl font-bold text-white">{error}</h1>
+          <Button asChild variant="dark-solid" size="sm" className="mt-4">
+            <Link href="/experts">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Experts
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Generate avatar URL based on name or use image from personalInfo
   const avatarUrl = expert?.personalInfo?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(expert?.personalInfo?.fullName || expert?.name || "Unknown")}&background=random&size=300&bold=true&color=fff`;
@@ -183,6 +221,11 @@ useEffect(() => {
             </Link>
           </Button>
           <AIEnrichmentButton />
+          <ExpertNewsPopup 
+            expertId={id} 
+            expertName={expert?.personalInfo?.fullName || expert?.name || "Unknown"}
+            companyName={expert?.institution?.name || expert?.company}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

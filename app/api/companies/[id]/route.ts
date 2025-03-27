@@ -3,10 +3,9 @@ import { getCompaniesCollection } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
 // GET /api/companies/[id] - Get a company by ID
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
   try {
-    const id = params.id;
-    
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -36,9 +35,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 // PUT /api/companies/[id] - Update a company
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
   try {
-    const id = params.id;
     const body = await request.json();
     
     // Validate ObjectId
@@ -82,10 +81,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 // DELETE /api/companies/[id] - Delete a company
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
   try {
-    const id = params.id;
-    
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(

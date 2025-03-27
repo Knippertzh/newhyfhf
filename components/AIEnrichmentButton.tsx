@@ -1,3 +1,5 @@
+          console.log(`AIEnrichmentButton: Fetching expert data for ID: ${id}`);
+          const expertResponse = await fetch(`/api/experts/${id}`);
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";

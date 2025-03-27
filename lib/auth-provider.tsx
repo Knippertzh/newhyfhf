@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!user) return false;
 
       // Replace with actual password verification
-      const isValid = password === user.passwordHash;
+const isValid = await bcrypt.compare(password, user.passwordHash);
       if (isValid) {
         const userData = { email: user.email, role: user.role };
         setUser(userData);

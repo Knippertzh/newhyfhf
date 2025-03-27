@@ -1,0 +1,21 @@
+{
+  "name": "npm-runner",
+  "version": "1.0.0",
+  "capabilities": {
+    "tools": {
+      "run-npm": {
+        "description": "Runs an arbitrary npm command",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "The npm command to execute"
+            }
+          },
+          "required": ["command"]
+        }
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb'; // Import ObjectId
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -137,4 +137,29 @@ export function standardizeDocument(doc: any) {
   }
   
   return standardized;
+}
+
+// Function to get a single expert by ID
+export async function getExpertById(id: string) {
+  if (!ObjectId.isValid(id)) {
+    console.error('Invalid ObjectId format:', id);
+    return null; // Or throw an error if preferred
+  }
+  
+  try {
+    const expertsCollection = await getExpertsCollection();
+    const expertDoc = await expertsCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!expertDoc) {
+      return null;
+    }
+    
+    // Standardize the document before returning
+    return standardizeDocument(expertDoc);
+  } catch (error) {
+    console.error('Error fetching expert by ID:', error);
+    // Re-throw the error or return null/handle as appropriate for your application
+    // Throwing might be better to surface the DB error in the API route
+    throw new Error('Database error while fetching expert by ID.'); 
+  }
 }

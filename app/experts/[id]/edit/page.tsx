@@ -14,7 +14,7 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchExpert = async () => {
       try {
-        const id = await params.id;
+        const id = params.id;
         const response = await fetch(`/api/experts/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch expert');

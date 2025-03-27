@@ -10,12 +10,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { Bookmark, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
-interface Article {
+type Article = {
   title: string;
   description: string;
   url: string;
   image?: string;
-}
+  expertName?: string; // Added for saved articles
+  source?: { name: string }; // Added source property to Article type
+};
 
 const AiNewsPage = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -24,46 +26,71 @@ const AiNewsPage = () => {
   const [currentArticle, setCurrentArticle] = useState<Article | null>(null);
   const [linkedEntity, setLinkedEntity] = useState("");
   const { toast } = useToast();
-  const [suggestions, setSuggestions] = useState([]);
+const [suggestions, setSuggestions] = useState([]);
+const [savedArticles, setSavedArticles] = useState<Article[]>([]);
+const [showSavedNews, setShowSavedNews] = useState(false);
   const debouncedLinkedEntity = useDebounce(linkedEntity, 300);
 
-  const fetchNews = async (query = "AI") => {
-    try {
-      const response = await fetch(
-        `/api/news/fetch?q=${encodeURIComponent(query)}&max=20`
-      );
-      const data = await response.json();
-      if (data.articles) {
-        // NewsAPI.org has a slightly different structure than GNews
-        // but we can still use the articles array directly
-        setArticles(data.articles.map(article => ({
+interface NewsResponse {
+  articles: Article[];
+}
+
+const fetchNews = async (query = "AI"): Promise<void> => {
+  try {
+    const response = await fetch(
+      `/api/news/fetch?q=${encodeURIComponent(query)}&max=20`
+    );
+    const data: NewsResponse = await response.json();
+    if (data.articles) {
+      setArticles(
+        data.articles.map((article: Article) => ({
           ...article,
           // Ensure compatibility with existing UI components
           url: article.url,
           title: article.title,
           description: article.description,
-          image: article.urlToImage // NewsAPI uses urlToImage instead of image
-        })));
-      }
-    } catch (error) {
-      console.error("Error fetching news:", error);
-      toast({
-        title: "Search Error",
-        description: "Failed to fetch news articles. Please try again later.",
-        variant: "destructive",
-      });
+          image: article.image, // Ensure compatibility with existing UI components
+        }))
+      );
     }
-  };
+  } catch (error) {
+    console.error("Error fetching news:", error);
+    toast({
+      title: "Search Error",
+      description: "Failed to fetch news articles. Please try again later.",
+      variant: "destructive",
+    });
+  }
+};
 
   useEffect(() => {
     fetchNews();
   }, []);
 
-  const handleSearch = () => {
+const fetchSavedNews = async () => {
+  try {
+    const response = await fetch("/api/news/saved");
+    const data = await response.json();
+    if (data.savedArticles) {
+      setSavedArticles(data.savedArticles);
+      setShowSavedNews(true);
+    }
+  } catch (error) {
+    console.error("Error fetching saved news:", error);
+    toast({
+      title: "Error",
+      description: "Failed to fetch saved news articles.",
+      variant: "destructive",
+    });
+  }
+};
+
+const handleSearch = () => {
+  setShowSavedNews(false);
     fetchNews(searchQuery);
   };
 
-  const handleSaveClick = (article: Article) => {
+const handleSaveClick = (article: Article): void => { // Ensure article is typed with explicit return type
     setCurrentArticle(article);
     setSaveDialogOpen(true);
   };
@@ -134,7 +161,10 @@ const AiNewsPage = () => {
         <h1 className="text-2xl font-bold mb-4 text-white">Top AI News</h1>
         <p className="text-gray-300 mb-6">Browse the latest AI news from around the world. Search for specific topics or save articles to your collection.</p>
 
-        <div className="flex items-center gap-2 mb-6">
+<div className="flex items-center gap-2 mb-6">
+  <Button onClick={fetchSavedNews} variant="outline">
+    View Saved News
+  </Button>
               <div className="relative">
                 <Input
             placeholder="Search news articles"
@@ -162,7 +192,37 @@ const AiNewsPage = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {articles.length > 0 ? (
+{showSavedNews ? (
+  savedArticles.length > 0 ? (
+    savedArticles.map((article) => (
+      <div
+        key={article.url || Math.random().toString()}
+        className="bg-gray-900/70 border-gray-700 rounded-lg shadow-md p-4 hover:shadow-xl transition duration-300 relative"
+      >
+        <a href={article.url} target="_blank" rel="noopener noreferrer">
+          <h2 className="text-xl font-bold mb-2 text-blue-600 hover:text-blue-800 transition duration-200">
+            {article.title || 'No Title'}
+          </h2>
+        </a>
+        {article.image && (
+          <img
+            src={article.image}
+            alt={article.title || 'News image'}
+            className="w-full h-48 object-cover mb-4 rounded-md"
+          />
+        )}
+        <p className="text-gray-300 leading-relaxed mb-3">{article.description || 'No description available'}</p>
+        <div className="text-xs text-gray-400 truncate">
+          Expert: {article.expertName || 'Unknown Expert'}
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="col-span-3 text-center py-10">
+      <h3 className="text-xl text-gray-400">No saved news articles found.</h3>
+    </div>
+  )
+) : articles.length > 0 ? (
             articles.map((article) => (
               <div
                 key={article.url || Math.random().toString()}

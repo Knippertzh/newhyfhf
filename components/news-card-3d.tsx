@@ -50,6 +50,13 @@ export function NewsCard3D({ article, onSave }: NewsCard3DProps) {
           transformStyle: "preserve-3d",
         }}
       >
+        {article.image && (
+          <img
+            src={article.image}
+            alt={article.title}
+            className="w-full h-32 object-cover rounded-t-md"
+          />
+        )}
         <CardHeader className="p-3">
           <CardTitle className="text-white text-base">{article.title}</CardTitle>
         </CardHeader>
