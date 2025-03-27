@@ -153,13 +153,13 @@ useEffect(() => {
   }
 
   const categories = {
-    "Overview": ["name", "title", "company", "bio"],
-    "Specializations": ["specializations"],
+    "Overview": ["name", "title", "company", "bio", "personalInfo", "institution"],
+    "Specializations": ["specializations", "expertise"],
     "Education": ["education"],
-    "Publications": ["publications"],
+    "Publications": ["publications", "academicMetrics"],
     "Projects": ["projects"],
-    "Contact Information": ["email", "website", "linkedin", "twitter"],
-    "News": [],
+    "Contact Information": ["email", "website", "linkedin", "twitter", "profiles", "personalInfo.phone", "personalInfo.email", "personalInfo.address", "personalInfo.location"],
+    "Additional Information": ["priorCompany", "comments", "references", "personalInfo.languages", "personalInfo.nationality", "tags"],
   };
 
   type CategoryKey = keyof typeof categories;
@@ -272,7 +272,14 @@ useEffect(() => {
                     <CardContent>
                       <div className="space-y-4">
                         {categories[category as CategoryKey].map((key: string) => {
-                          const value = (expert as any)[key];
+                          // Handle nested keys like personalInfo.email
+                          let value;
+                          if (key.includes('.')) {
+                            const [parentKey, childKey] = key.split('.');
+                            value = expert && (expert as any)[parentKey] ? (expert as any)[parentKey][childKey] : undefined;
+                          } else {
+                            value = (expert as any)[key];
+                          }
                           
                           // Handle different data types appropriately
                           if (key === "specializations" && Array.isArray(value)) {
@@ -288,6 +295,48 @@ useEffect(() => {
                                 </div>
                               </div>
                             );
+                          } else if (key === "expertise" && value && typeof value === 'object') {
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Expertise</h3>
+                                {value.primary && value.primary.length > 0 && (
+                                  <div className="mb-3">
+                                    <h4 className="font-semibold mb-1">Primary Expertise</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {value.primary.map((item: string, index: number) => (
+                                        <Badge key={index} className="bg-purple-600/20 text-purple-300 hover:bg-purple-600/30">
+                                          {item}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {value.secondary && value.secondary.length > 0 && (
+                                  <div className="mb-3">
+                                    <h4 className="font-semibold mb-1">Secondary Expertise</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {value.secondary.map((item: string, index: number) => (
+                                        <Badge key={index} className="bg-gray-700/50 text-gray-300">
+                                          {item}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                {value.industries && value.industries.length > 0 && (
+                                  <div>
+                                    <h4 className="font-semibold mb-1">Industries</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {value.industries.map((item: string, index: number) => (
+                                        <Badge key={index} className="bg-blue-600/20 text-blue-300">
+                                          {item}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
                           } else if (key === "education" && Array.isArray(value)) {
                             return (
                               <div key={key} className="text-white">
@@ -298,11 +347,14 @@ useEffect(() => {
                                       <CardContent className="p-4">
                                         <div className="flex justify-between items-start">
                                           <div>
-                                            <h4 className="font-bold">{edu.degree}</h4>
-                                            <p className="text-sm text-gray-300">{edu.institution}</p>
+                                            <h4 className="font-bold">{edu.degree || edu.degreeName}</h4>
+                                            <p className="text-sm text-gray-300">{edu.institution || edu.schoolName}</p>
+                                            {edu.fieldOfStudy && (
+                                              <p className="text-xs text-gray-400 mt-1">{edu.fieldOfStudy}</p>
+                                            )}
                                           </div>
                                           <Badge variant="outline" className="text-gray-300 border-gray-600">
-                                            {edu.year}
+                                            {edu.year || (edu.timePeriod ? `${edu.timePeriod.startDate?.year || ''}-${edu.timePeriod.endDate?.year || 'Present'}` : '')}
                                           </Badge>
                                         </div>
                                       </CardContent>
@@ -334,6 +386,43 @@ useEffect(() => {
                                 </div>
                               </div>
                             );
+                          } else if (key === "academicMetrics" && value && typeof value === 'object') {
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Academic Metrics</h3>
+                                {value.publications && (
+                                  <div className="mb-3">
+                                    {value.publications.total && (
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="font-semibold">Total Publications:</span>
+                                        <span>{value.publications.total}</span>
+                                      </div>
+                                    )}
+                                    {value.publications.sources && (
+                                      <div className="space-y-2">
+                                        <h4 className="font-semibold text-sm">Profiles:</h4>
+                                        {value.publications.sources.googleScholar && (
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm">Google Scholar:</span>
+                                            <a href={value.publications.sources.googleScholar} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline text-sm">
+                                              {value.publications.sources.googleScholar}
+                                            </a>
+                                          </div>
+                                        )}
+                                        {value.publications.sources.scopus && (
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm">Scopus:</span>
+                                            <a href={value.publications.sources.scopus} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline text-sm">
+                                              {value.publications.sources.scopus}
+                                            </a>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
                           } else if (key === "projects" && Array.isArray(value)) {
                             return (
                               <div key={key} className="text-white">
@@ -358,12 +447,222 @@ useEffect(() => {
                                 <p className="text-gray-300">{bio}</p>
                               </div>
                             );
+                          } else if (key === "personalInfo" && value && typeof value === 'object') {
+                            // Display personal info that isn't already shown elsewhere
+                            const fieldsToShow = [];
+                            
+                            if (value.languages && Array.isArray(value.languages) && value.languages.length > 0) {
+                              fieldsToShow.push(
+                                <div key="languages" className="mb-2">
+                                  <span className="font-semibold">Languages:</span>{' '}
+                                  {value.languages.join(', ')}
+                                </div>
+                              );
+                            }
+                            
+                            if (value.nationality) {
+                              fieldsToShow.push(
+                                <div key="nationality" className="mb-2">
+                                  <span className="font-semibold">Nationality:</span>{' '}
+                                  {value.nationality}
+                                </div>
+                              );
+                            }
+                            
+                            if (value.dateOfBirth) {
+                              fieldsToShow.push(
+                                <div key="dateOfBirth" className="mb-2">
+                                  <span className="font-semibold">Date of Birth:</span>{' '}
+                                  {value.dateOfBirth}
+                                </div>
+                              );
+                            }
+                            
+                            return fieldsToShow.length > 0 ? (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Personal Information</h3>
+                                {fieldsToShow}
+                              </div>
+                            ) : null;
+                          } else if (key === "institution" && value && typeof value === 'object') {
+                            // Display institution info that isn't already shown elsewhere
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Institution</h3>
+                                {value.name && (
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Building className="h-4 w-4 text-purple-400" />
+                                    <span className="font-semibold">Organization:</span>
+                                    <span>{value.name}</span>
+                                  </div>
+                                )}
+                                {value.position && (
+                                  <div className="mb-2">
+                                    <span className="font-semibold">Position:</span>{' '}
+                                    {value.position}
+                                  </div>
+                                )}
+                                {value.department && (
+                                  <div className="mb-2">
+                                    <span className="font-semibold">Department:</span>{' '}
+                                    {value.department}
+                                  </div>
+                                )}
+                                {value.website && (
+                                  <div className="flex items-center gap-2">
+                                    <Globe className="h-4 w-4 text-purple-400" />
+                                    <span className="font-semibold">Website:</span>
+                                    <a href={value.website.startsWith('http') ? value.website : `https://${value.website}`} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline">
+                                      {value.website}
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          } else if (key === "profiles" && value && typeof value === 'object') {
+                            // Display social profiles and links
+                            const profileLinks = [];
+                            
+                            if (value.linkedin) {
+                              profileLinks.push(
+                                <div key="linkedin" className="flex items-center gap-2 mb-2">
+                                  <Linkedin className="h-4 w-4 text-purple-400" />
+                                  <span className="font-semibold">LinkedIn:</span>
+                                  <a href={value.linkedin.startsWith('http') ? value.linkedin : `https://linkedin.com/in/${value.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline">
+                                    {value.linkedin}
+                                  </a>
+                                </div>
+                              );
+                            }
+                            
+                            if (value.twitter) {
+                              profileLinks.push(
+                                <div key="twitter" className="flex items-center gap-2 mb-2">
+                                  <Twitter className="h-4 w-4 text-purple-400" />
+                                  <span className="font-semibold">Twitter:</span>
+                                  <a href={value.twitter.startsWith('http') ? value.twitter : `https://twitter.com/${value.twitter}`} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline">
+                                    {value.twitter}
+                                  </a>
+                                </div>
+                              );
+                            }
+                            
+                            if (value.company) {
+                              profileLinks.push(
+                                <div key="company" className="flex items-center gap-2 mb-2">
+                                  <Globe className="h-4 w-4 text-purple-400" />
+                                  <span className="font-semibold">Company Website:</span>
+                                  <a href={value.company.startsWith('http') ? value.company : `https://${value.company}`} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline">
+                                    {value.company}
+                                  </a>
+                                </div>
+                              );
+                            }
+                            
+                            if (value.other) {
+                              profileLinks.push(
+                                <div key="other" className="flex items-center gap-2 mb-2">
+                                  <Globe className="h-4 w-4 text-purple-400" />
+                                  <span className="font-semibold">Other Links:</span>
+                                  <a href={value.other.startsWith('http') ? value.other : `https://${value.other}`} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline">
+                                    {value.other}
+                                  </a>
+                                </div>
+                              );
+                            }
+                            
+                            return profileLinks.length > 0 ? (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Online Profiles</h3>
+                                {profileLinks}
+                              </div>
+                            ) : null;
+                          } else if (key === "references" && Array.isArray(value) && value.length > 0) {
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">References</h3>
+                                <div className="space-y-2">
+                                  {value.map((ref, index) => (
+                                    <div key={index} className="flex items-start gap-2">
+                                      <span>•</span>
+                                      <div>
+                                        <span>{ref.name}</span>
+                                        {ref.link && (
+                                          <a href={ref.link} target="_blank" rel="noopener noreferrer" className="text-purple-300 hover:underline ml-2">
+                                            [Link]
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          } else if (key === "tags" && Array.isArray(value) && value.length > 0) {
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Tags</h3>
+                                <div className="flex flex-wrap gap-2">
+                                  {value.map((tag, index) => (
+                                    <Badge key={index} className="bg-gray-700/50 text-gray-300">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          } else if (key === "priorCompany" && value) {
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Prior Company</h3>
+                                <div className="flex items-center gap-2">
+                                  <Building className="h-4 w-4 text-purple-400" />
+                                  <span>{value}</span>
+                                </div>
+                              </div>
+                            );
+                          } else if (key === "comments" && value) {
+                            return (
+                              <div key={key} className="text-white">
+                                <h3 className="font-bold text-lg mb-2">Additional Comments</h3>
+                                <p className="text-gray-300">{value}</p>
+                              </div>
+                            );
                           } else if (key === "email" && typeof value === "string") {
                             return (
                               <div key={key} className="text-white flex items-center gap-2">
                                 <Mail className="h-4 w-4 text-purple-400" />
                                 <span className="font-bold">Email:</span>
                                 <a href={`mailto:${value}`} className="text-purple-300 hover:underline">{value}</a>
+                              </div>
+                            );
+                          } else if (key === "personalInfo.email" && typeof value === "string") {
+                            return (
+                              <div key={key} className="text-white flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-purple-400" />
+                                <span className="font-bold">Email:</span>
+                                <a href={`mailto:${value}`} className="text-purple-300 hover:underline">{value}</a>
+                              </div>
+                            );
+                          } else if (key === "personalInfo.phone" && value) {
+                            return (
+                              <div key={key} className="text-white flex items-center gap-2">
+                                <span className="font-bold">Phone:</span>
+                                <a href={`tel:${value}`} className="text-purple-300 hover:underline">{value}</a>
+                              </div>
+                            );
+                          } else if (key === "personalInfo.address" && value) {
+                            return (
+                              <div key={key} className="text-white flex items-center gap-2">
+                                <span className="font-bold">Address:</span>
+                                <span>{value}</span>
+                              </div>
+                            );
+                          } else if (key === "personalInfo.location" && value) {
+                            return (
+                              <div key={key} className="text-white flex items-center gap-2">
+                                <span className="font-bold">Location:</span>
+                                <span>{value}</span>
                               </div>
                             );
                           } else if (key === "website" && typeof value === "string") {
@@ -408,11 +707,36 @@ useEffect(() => {
                           } else if (key === "name" || key === "title") {
                             // Skip these as they're already shown in the profile card
                             return null;
-                          } else {
-                            // Default rendering for other fields
+                          } else if (key === "personalInfo.languages" && Array.isArray(value)) {
                             return (
                               <div key={key} className="text-white">
-                                <span className="font-bold">{key}:</span> {typeof value === 'object' ? JSON.stringify(value, null, 2) : value}
+                                <span className="font-bold">Languages:</span>{' '}
+                                {value.join(', ')}
+                              </div>
+                            );
+                          } else if (key === "personalInfo.nationality" && value) {
+                            return (
+                              <div key={key} className="text-white">
+                                <span className="font-bold">Nationality:</span>{' '}
+                                {value}
+                              </div>
+                            );
+                          } else {
+                            // Default rendering for other fields
+                            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                              // Skip rendering complex objects directly
+                              return null;
+                            }
+                            
+                            // Format the key for display
+                            const displayKey = key.includes('.') 
+                              ? key.split('.')[1].charAt(0).toUpperCase() + key.split('.')[1].slice(1)
+                              : key.charAt(0).toUpperCase() + key.slice(1);
+                            
+                            return (
+                              <div key={key} className="text-white">
+                                <span className="font-bold">{displayKey}:</span>{' '}
+                                {Array.isArray(value) ? value.join(', ') : value}
                               </div>
                             );
                           }

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   
   try {
     // Make sure we're using the correct environment variable name as defined in .env.local
-    const apiKey = process.env.GNEWS_API_KEY;
+    const apiKey = process.env.NEWSAPI_API_KEY;
     
     if (!apiKey) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
     
     const response = await fetch(
-      `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&country=us&max=${max}&apikey=${apiKey}`
+      `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&pageSize=${max}&apiKey=${apiKey}`
     );
     
     if (!response.ok) {
@@ -29,7 +29,18 @@ export async function GET(request: NextRequest) {
     }
     
     const data = await response.json();
-    return NextResponse.json(data);
+    
+    // NewsAPI.org returns data in a different structure than GNews
+    // We need to transform it to match the expected format in the frontend
+    if (data.articles) {
+      // Keep the original structure but ensure it's compatible with the frontend
+      return NextResponse.json(data);
+    } else {
+      return NextResponse.json(
+        { error: 'Unexpected API response format' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Error fetching news:', error);
     return NextResponse.json(

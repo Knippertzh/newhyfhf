@@ -1,26 +1,22 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '../../../lib/mongodb';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const { note } = req.body;
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { note } = body;
 
     if (!note) {
-      return res.status(400).json({ error: 'Note content is required' });
+      return NextResponse.json({ error: 'Note content is required' }, { status: 400 });
     }
 
-    try {
-      const { db } = await connectToDatabase();
-      const collection = db.collection('notes');
-      const result = await collection.insertOne({ note, createdAt: new Date() });
+    const { db } = await connectToDatabase();
+    const collection = db.collection('notes');
+    const result = await collection.insertOne({ note, createdAt: new Date() });
 
-      return res.status(201).json({ message: 'Note saved successfully', noteId: result.insertedId });
-    } catch (error) {
-      console.error('Error saving note:', error);
-      return res.status(500).json({ error: 'Failed to save note' });
-    }
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    return NextResponse.json({ message: 'Note saved successfully', noteId: result.insertedId }, { status: 201 });
+  } catch (error) {
+    console.error('Error saving note:', error);
+    return NextResponse.json({ error: 'Failed to save note' }, { status: 500 });
   }
 }

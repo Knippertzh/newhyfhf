@@ -1,3 +1,5 @@
+\"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DashboardChart } from "@/components/dashboard-chart"
@@ -13,7 +15,64 @@ interface Article {
   image?: string;
 }
 
+interface Expert {
+  personalInfo: {
+    fullName: string;
+    image: string;
+    title: string;
+    email?: string;
+    bio?: string;
+  };
+  specializations?: string[];
+  expertise?: {
+    primary?: string[];
+    secondary?: string[];
+  };
+  institution?: {
+    name?: string;
+    position?: string;
+    department?: string;
+  };
+  contact?: {
+    email?: string;
+    phone?: string;
+    website?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
+  publications?: Array<{
+    title: string;
+    year?: number;
+    url?: string;
+  }>;
+}
+
 export default function DashboardPage() {
+  const [expert, setExpert] = useState<Expert | null>(null);
+
+  useEffect(() => {
+    async function fetchRandomExpert() {
+      try {
+        const response = await fetch('/api/experts/random');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.personalInfo?.fullName && data.personalInfo?.image && data.personalInfo?.title) {
+          setExpert(data);
+        } else {
+          console.error("Invalid expert data structure:", data);
+          setExpert(null);
+        }
+      } catch (error) {
+        console.error("Error fetching random expert:", error);
+        setExpert(null);
+      }
+    };
+
+    fetchRandomExpert();
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-black">
       <Navbar />
@@ -26,10 +85,39 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="bg-gray-900/70 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">Random AI Expert Example</CardTitle>
+              <CardTitle className="text-white">MongoDB Expert Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* AI Expert Content */}
+              {expert && expert.personalInfo && (
+                <div className="flex items-center space-x-4">
+                  <img src={expert.personalInfo.image} alt={expert.personalInfo.fullName} className="w-16 h-16 rounded-full object-cover" />
+                  <div>
+                    <h2 className="text-white text-lg">{expert.personalInfo.fullName}</h2>
+                    <p className="text-gray-400">{expert.personalInfo.title}</p>
+                    {expert.company && <p className="text-gray-400 text-sm">Company: {expert.company}</p>}
+                    {expert.specializations && expert.specializations.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-gray-400 text-xs">Specializations:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {expert.specializations.slice(0, 2).map((spec, index) => (
+                            <span key={index} className="text-xs bg-purple-900/50 text-purple-200 px-2 py-0.5 rounded">
+                              {spec}
+                            </span>
+                          ))}
+                          {expert.specializations.length > 2 && (
+                            <span className="text-xs text-purple-400">+{expert.specializations.length - 2} more</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {!expert && (
+                <div className="text-center py-4">
+                  <p className="text-gray-400">Loading expert data...</p>
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card className="bg-gray-900/70 border-gray-700">

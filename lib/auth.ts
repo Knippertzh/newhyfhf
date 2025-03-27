@@ -20,9 +20,16 @@ export const validateAdmin = async (userId: string) => {
   }
 };
 
+import bcrypt from 'bcryptjs';
+
 export const hashPassword = async (password: string) => {
-  // Return plain text password as requested
-  return password;
+  // Hash password with bcrypt
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+export const comparePassword = async (password: string, hashedPassword: string) => {
+  return bcrypt.compare(password, hashedPassword);
 };
 
 export const createAuthToken = (userId: string) => {
@@ -51,7 +58,8 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isPasswordValid = credentials.password === user.passwordHash;
+        // Use bcrypt to compare the password with the stored hash
+        const isPasswordValid = await comparePassword(credentials.password, user.passwordHash);
 
         if (!isPasswordValid) {
           return null;

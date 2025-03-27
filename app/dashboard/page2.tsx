@@ -26,7 +26,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="bg-gray-900/70 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">Random AI Expert Example</CardTitle>
+              <CardTitle className="text-white">Favorite AI Expert</CardTitle>
             </CardHeader>
             <CardContent>
               {/* AI Expert Content */}

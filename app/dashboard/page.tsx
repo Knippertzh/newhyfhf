@@ -9,6 +9,7 @@ import PageBackground from "@/components/page-background.tsx"
 import { NewsCard3D } from "@/components/news-card-3d.tsx"
 import { useState, useEffect } from "react";
 import Notepad from "../../components/Notepad";
+import ShareButton from "@/components/share-button";
 
 interface Article {
   title: string;
@@ -22,7 +23,31 @@ interface Expert {
     fullName: string;
     image: string;
     title: string;
+    email?: string;
+    bio?: string;
   };
+  specializations?: string[];
+  expertise?: {
+    primary?: string[];
+    secondary?: string[];
+  };
+  institution?: {
+    name?: string;
+    position?: string;
+    department?: string;
+  };
+  contact?: {
+    email?: string;
+    phone?: string;
+    website?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
+  publications?: Array<{
+    title: string;
+    year?: number;
+    url?: string;
+  }>;
 }
 
 interface Company {
@@ -63,19 +88,51 @@ export default function DashboardPage() {
     async function fetchRandomExpert() {
       try {
         const response = await fetch('/api/experts/random');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = await response.json();
-        if (data && data.personalInfo?.fullName && data.personalInfo?.image && data.personalInfo?.title) {
+        
+        // Even if response is not OK, we should still try to use the data
+        // as our API now returns fallback data instead of error status codes
+        if (data && data.personalInfo) {
           setExpert(data);
         } else {
           console.error("Invalid expert data structure:", data);
-          setExpert(null);
+          // Set fallback expert data
+          setExpert({
+            personalInfo: {
+              fullName: 'Example Expert',
+              title: 'AI Specialist',
+              image: '/placeholder-user.jpg'
+            },
+            institution: {
+              name: 'Example Institution',
+              position: 'Researcher'
+            },
+            expertise: {
+              primary: ['Artificial Intelligence'],
+              secondary: ['Data Science']
+            },
+            specializations: ['AI Ethics']
+          });
         }
       } catch (error) {
         console.error("Error fetching random expert:", error);
-        setExpert(null);
+        // Set fallback expert data
+        setExpert({
+          personalInfo: {
+            fullName: 'Example Expert',
+            title: 'AI Specialist',
+            image: '/placeholder-user.jpg'
+          },
+          institution: {
+            name: 'Example Institution',
+            position: 'Researcher'
+          },
+          expertise: {
+            primary: ['Artificial Intelligence'],
+            secondary: ['Data Science']
+          },
+          specializations: ['AI Ethics']
+        });
       }
     };
 
@@ -86,19 +143,39 @@ export default function DashboardPage() {
     async function fetchRandomCompany() {
       try {
         const response = await fetch('/api/companies/random');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
         const data = await response.json();
-        if (data && data.name && data.industry) {
+        
+        // Even if response is not OK, we should still try to use the data
+        // as our API now returns fallback data instead of error status codes
+        if (data && data.name) {
           setCompany(data);
         } else {
           console.error("Invalid company data structure:", data);
-          setCompany(null);
+          // Set fallback company data
+          setCompany({
+            id: 'fallback-company-id',
+            name: 'Example AI Company',
+            description: 'A leading AI research and development company.',
+            industry: 'Artificial Intelligence',
+            location: 'Berlin, Germany',
+            logoUrl: '/placeholder-logo.svg',
+            website: 'https://example.com',
+            expertCount: 5
+          });
         }
       } catch (error) {
         console.error("Error fetching random company:", error);
-        setCompany(null);
+        // Set fallback company data
+        setCompany({
+          id: 'fallback-company-id',
+          name: 'Example AI Company',
+          description: 'A leading AI research and development company.',
+          industry: 'Artificial Intelligence',
+          location: 'Berlin, Germany',
+          logoUrl: '/placeholder-logo.svg',
+          website: 'https://example.com',
+          expertCount: 5
+        });
       }
     };
 
@@ -110,25 +187,49 @@ export default function DashboardPage() {
       <Navbar />
       <div className="absolute inset-0 z-0">
         <PageBackground intensity="high" />
-        </div>
-        <Notepad />
+      </div>
       <div className="container relative py-10">
-        <h1 className="text-3xl font-bold mb-8 text-white">Dashboard</h1>
+        <Notepad />
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <ShareButton />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="bg-gray-900/70 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">Random AI Expert Example</CardTitle>
+              <CardTitle className="text-white">MongoDB Expert Preview</CardTitle>
             </CardHeader>
             <CardContent>
               {expert && expert.personalInfo && (
                 <div className="flex items-center space-x-4">
-                  <img src={expert.personalInfo.image} alt={expert.personalInfo.fullName} className="w-16 h-16 rounded-full" />
+                  <img src={expert.personalInfo.image} alt={expert.personalInfo.fullName} className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <h2 className="text-white text-lg">{expert.personalInfo.fullName}</h2>
                     <p className="text-gray-400">{expert.personalInfo.title}</p>
+                    {expert.institution?.name && <p className="text-gray-400 text-sm">{expert.institution.name}</p>}
+                    {expert.specializations && expert.specializations.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-gray-400 text-xs">Specializations:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {expert.specializations.slice(0, 2).map((spec, index) => (
+                            <span key={index} className="text-xs bg-purple-900/50 text-purple-200 px-2 py-0.5 rounded">
+                              {spec}
+                            </span>
+                          ))}
+                          {expert.specializations.length > 2 && (
+                            <span className="text-xs text-purple-400">+{expert.specializations.length - 2} more</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     <button className="mt-2 text-purple-600 hover:underline">More</button>
                   </div>
+                </div>
+              )}
+              {!expert && (
+                <div className="text-center py-4">
+                  <p className="text-gray-400">Loading expert data...</p>
                 </div>
               )}
             </CardContent>
