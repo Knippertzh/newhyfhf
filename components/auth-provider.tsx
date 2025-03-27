@@ -101,7 +101,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const adminLogin = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // Use fetch to call a server API endpoint instead of direct Prisma usage
+      // We'll keep the hardcoded admin for development/testing purposes
+      // but prioritize the API endpoint for real authentication
+      if (process.env.NODE_ENV === 'development' && email === "admin@example.com" && password === "Dishbrain2025!") {
+        const adminData = {
+          id: "admin-1",
+          name: "Admin",
+          email: "admin@example.com",
+          role: "ADMIN" as const,
+        }
+
+        setUser(adminData)
+        localStorage.setItem("user", JSON.stringify(adminData))
+        
+        // Redirect directly to admin dashboard
+        router.push("/admin/dashboard")
+        return
+      }
+      
+      // If not using hardcoded credentials, try the API endpoint
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
@@ -125,6 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(adminData)
       localStorage.setItem("user", JSON.stringify(adminData))
+      
+      // Redirect directly to admin dashboard
       router.push("/admin/dashboard")
     } catch (error) {
       console.error("Admin login error:", error)

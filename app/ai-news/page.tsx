@@ -34,7 +34,16 @@ const AiNewsPage = () => {
       );
       const data = await response.json();
       if (data.articles) {
-        setArticles(data.articles);
+        // NewsAPI.org has a slightly different structure than GNews
+        // but we can still use the articles array directly
+        setArticles(data.articles.map(article => ({
+          ...article,
+          // Ensure compatibility with existing UI components
+          url: article.url,
+          title: article.title,
+          description: article.description,
+          image: article.urlToImage // NewsAPI uses urlToImage instead of image
+        })));
       }
     } catch (error) {
       console.error("Error fetching news:", error);

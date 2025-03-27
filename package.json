@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@aws-sdk/credential-providers": "^3.772.0",
-    "@floating-ui/react": "^0.26.0",
+    "@floating-ui/react": "^0.26.28",
+    "@google/generative-ai": "^0.24.0",
     "@hookform/resolvers": "^3.9.1",
     "@mongodb-js/zstd": "^2.0.1",
     "@prisma/client": "^6.5.0",
@@ -56,6 +57,7 @@
     "autoprefixer": "^10.4.20",
     "aws4": "^1.13.2",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",

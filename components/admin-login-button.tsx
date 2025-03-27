@@ -23,7 +23,7 @@ import { AlertCircle } from "lucide-react"
 
 export default function AdminLoginButton() {
   const { adminLogin } = useAuth()
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -36,7 +36,7 @@ export default function AdminLoginButton() {
 
     try {
       // Use the adminLogin function from auth context
-      await adminLogin(username, password)
+      await adminLogin(email, password)
       // If login is successful, the auth provider will handle the redirect
     } catch (err) {
       setError("Invalid admin credentials")
@@ -72,23 +72,24 @@ export default function AdminLoginButton() {
         <div className="mb-4 p-3 bg-gray-800/70 rounded-md border border-gray-700">
           <p className="text-sm font-medium text-primary mb-2">Sample Admin Credentials:</p>
           <div className="grid grid-cols-2 gap-2 text-xs text-white">
-            <div>Username:</div>
-            <div className="font-mono">admin</div>
+            <div>Email:</div>
+            <div className="font-mono">admin@example.com</div>
             <div>Password:</div>
-            <div className="font-mono">admin123</div>
+            <div className="font-mono">Dishbrain2025!</div>
           </div>
         </div>
 
         <form onSubmit={handleAdminLogin}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="admin-username" className="text-white">
-                Username
+              <Label htmlFor="admin-email" className="text-white">
+                Email
               </Label>
               <Input
-                id="admin-username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="admin-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-gray-900/70 border-gray-700 text-white"
                 required
               />
