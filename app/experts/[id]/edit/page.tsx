@@ -42,7 +42,21 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedExpert),
+        body: JSON.stringify({
+          ...updatedExpert,
+          personalInfo: {
+            ...expert?.personalInfo,
+            ...updatedExpert.personalInfo
+          },
+          institution: {
+            ...expert?.institution,
+            ...updatedExpert.institution  
+          },
+          expertise: {
+            ...expert?.expertise,
+            ...updatedExpert.expertise
+          }
+        }),
       });
 
       if (!response.ok) {

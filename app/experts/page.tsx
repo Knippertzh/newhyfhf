@@ -31,17 +31,25 @@ export default function ExpertsPage() {
   const debouncedFetchExperts = useCallback(
     debounce(async (name: string, specialization: string, company: string) => {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (name) params.append("name", name);
-      if (specialization) params.append("specialization", specialization);
-      if (company) params.append("company", company);
-
       try {
+        const params = new URLSearchParams();
+        if (name) params.append("name", name);
+        if (specialization) params.append("specialization", specialization);
+        if (company) params.append("company", company);
+
         const response = await fetch(`/api/experts?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Response is not JSON");
+        }
         const data = await response.json();
         setExperts(data);
       } catch (error) {
         console.error('Error fetching experts:', error);
+        setExperts([]);
       } finally {
         setLoading(false);
       }

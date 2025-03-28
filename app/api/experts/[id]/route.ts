@@ -44,10 +44,16 @@ export async function PUT(
 
     const expertsCollection = await getExpertsCollection();
 
+    // Add updatedAt timestamp
+    const updateData = {
+      ...body,
+      updatedAt: new Date()
+    };
+
     // Update expert document
     const result = await expertsCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: body }
+      { $set: updateData }
     );
 
     if (result.matchedCount === 0) {
