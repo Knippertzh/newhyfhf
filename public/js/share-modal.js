@@ -2,14 +2,19 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Wait for the DOM to be fully loaded
   setTimeout(() => {
-    const shareButton = document.querySelector('.share-button');
+    // Use querySelectorAll to get all share buttons
+    const shareButtons = document.querySelectorAll('.share-button');
     
-    // Add null check before adding event listener
-    if (shareButton) {
-      shareButton.addEventListener('click', function() {
-        // Open share modal logic would go here
-        console.log('Share button clicked');
+    if (shareButtons && shareButtons.length > 0) {
+      // Add event listener to each share button
+      shareButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // Open share modal logic would go here
+          console.log('Share button clicked');
+        });
       });
+    } else {
+      console.log('No share buttons found in the DOM');
     }
-  }, 100);
+  }, 500);
 });

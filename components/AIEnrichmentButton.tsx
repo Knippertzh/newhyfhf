@@ -1,5 +1,3 @@
-          console.log(`AIEnrichmentButton: Fetching expert data for ID: ${id}`);
-          const expertResponse = await fetch(`/api/experts/${id}`);
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -99,6 +97,8 @@ const AIEnrichmentButton: React.FC = () => {
     
     try {
       // Fetch expert data first
+      // Corrected line: Use expertId instead of id
+      console.log(`AIEnrichmentButton: Fetching expert data for ID: ${expertId}`); 
       const expertResponse = await fetch(`/api/experts/${expertId}`);
       if (!expertResponse.ok) {
         throw new Error("Failed to fetch expert data");

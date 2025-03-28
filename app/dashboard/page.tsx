@@ -72,12 +72,39 @@ export default function DashboardPage() {
         const response = await fetch(
           "https://gnews.io/api/v4/top-headlines?category=ai&lang=en&country=us&max=5&q=AI&apikey=e050e098c2b318a7625b9bec0a069914"
         );
+        
+        // Check if the response is OK before trying to parse JSON
+        if (!response.ok) {
+          console.error(`News API returned status: ${response.status}`);
+          // Set fallback articles if API fails
+          setArticles([
+            {
+              title: "AI News Example",
+              description: "This is a placeholder for AI news when the API is unavailable.",
+              url: "#"
+            }
+          ]);
+          return;
+        }
+        
         const data = await response.json();
         if (data.articles) {
           setArticles(data.articles);
+        } else {
+          // Handle case where articles property doesn't exist
+          console.error("No articles property in API response");
+          setArticles([]);
         }
       } catch (error) {
         console.error("Error fetching news:", error);
+        // Set fallback articles on error
+        setArticles([
+          {
+            title: "AI News Example",
+            description: "This is a placeholder for AI news when the API is unavailable.",
+            url: "#"
+          }
+        ]);
       }
     };
 
@@ -145,9 +172,11 @@ export default function DashboardPage() {
         const response = await fetch('/api/companies/random');
         const data = await response.json();
         
-        // Even if response is not OK, we should still try to use the data
-        // as our API now returns fallback data instead of error status codes
-        if (data && data.name) {
+        // Add additional logging to help diagnose the issue
+        console.log("Received company data:", data);
+        
+        // Check if data is empty object or missing required fields
+        if (data && typeof data === 'object' && Object.keys(data).length > 0 && data.name) {
           setCompany(data);
         } else {
           console.error("Invalid company data structure:", data);

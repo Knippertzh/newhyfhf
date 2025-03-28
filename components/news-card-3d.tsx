@@ -13,9 +13,10 @@ interface Article {
 interface NewsCard3DProps {
   article: Article;
   onSave?: (article: Article) => void;
+  isSaved?: boolean; // Added optional isSaved prop
 }
 
-export function NewsCard3D({ article, onSave }: NewsCard3DProps) {
+export function NewsCard3D({ article, onSave, isSaved }: NewsCard3DProps) { // Added isSaved to destructuring
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -64,10 +65,15 @@ export function NewsCard3D({ article, onSave }: NewsCard3DProps) {
           <p className="text-xs text-gray-400 mb-2">#ai #news</p>
           <div className="flex justify-between items-center">
             <button
-              onClick={() => onSave?.(article)}
-              className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+              onClick={() => !isSaved && onSave?.(article)} // Only call onSave if not already saved
+              className={`px-3 py-1 text-white text-xs rounded transition-colors ${
+                isSaved 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+              disabled={isSaved} // Disable button if saved
             >
-              Save
+              {isSaved ? 'Saved' : 'Save'} {/* Change text based on isSaved */}
             </button>
             <a 
               href={article.url} 

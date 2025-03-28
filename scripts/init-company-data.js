@@ -1,7 +1,7 @@
 // Script to initialize company data in MongoDB
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 // MongoDB connection URI from environment variable
 const uri = process.env.DISHBRAIN_MONGODB_URI;

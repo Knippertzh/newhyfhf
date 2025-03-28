@@ -13,17 +13,22 @@ interface Article {
 }
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+  // In Next.js App Router, params needs to be properly handled
+  // The error suggests we need to await params before accessing its properties
+  const { id } = await Promise.resolve(params);
   
   if (!id) {
     return NextResponse.json(
       { error: 'Expert ID is required' },
       { status: 400 }
     );
-  }
-  
+  } // Added missing closing brace for the if (!id) block
+
+  const { searchParams } = new URL(request.url);
+  const source = searchParams.get('source'); // Get the source query parameter
+
   try {
-    // Get expert details to use for search query
+    // Get expert details
     const expert = await getExpertById(id);
     
     if (!expert) {
@@ -36,8 +41,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // --- Get Saved News from Expert Document ---
     const savedNews: Article[] = expert.savedNews || [];
 
-    // --- Fetch External News ---
-    // Construct search query for external news API
+    // If only saved news is requested, return it immediately
+    if (source === 'saved') {
+      return NextResponse.json({
+        saved: savedNews,
+        external: [], // Return empty array for external when only saved is requested
+        externalApiError: null
+      });
+    }
+
+    // --- Fetch External News (Only if source is not 'saved') ---
     const expertName = expert.personalInfo?.fullName || expert.name || '';
     const companyName = expert.institution?.name || expert.company || '';
     const specializations = expert.specializations || [];

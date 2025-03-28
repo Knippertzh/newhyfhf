@@ -2,10 +2,15 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import Navbar from "@/components/navbar"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { CompanyForm } from "@/components/company-form"
+// CompanyForm import seems unused in this file, removing for now. If needed later, it can be re-added.
+// import { CompanyForm } from "@/components/company-form" 
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -16,6 +21,17 @@ export default function NewCompanyPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Helper function to validate URL (basic check)
+  const isValidUrl = (urlString: string): boolean => {
+    try {
+      new URL(urlString);
+      // Basic regex to check for common domain patterns, adjust as needed
+      return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(urlString);
+    } catch (e) {
+      return false;
+    }
+  };
   
   const [formData, setFormData] = useState({
     name: "",

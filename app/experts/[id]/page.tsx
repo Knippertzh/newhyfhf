@@ -235,7 +235,8 @@ export default function ExpertDetailPage() {
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-4">
                   <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-primary/20">
-<Image src={avatarUrl || "/placeholder.svg"} alt={expert?.name || "Unknown"} fill className="object-cover" loading="lazy" />
+{/* Added priority prop for LCP optimization */}
+<Image src={avatarUrl || "/placeholder.svg"} alt={expert?.name || "Unknown"} fill className="object-cover" priority />
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-bold text-white">{expert?.personalInfo?.fullName || expert?.name || "Unknown"}</CardTitle>

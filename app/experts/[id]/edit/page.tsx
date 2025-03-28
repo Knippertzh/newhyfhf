@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { ExpertForm } from '@/components/expert-form';
 import { Expert } from '@/lib/types';
 
@@ -14,7 +14,7 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchExpert = async () => {
       try {
-        const id = params.id;
+        const id = use(params).id;
         const response = await fetch(`/api/experts/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch expert');
@@ -33,11 +33,11 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
     };
 
     fetchExpert();
-  }, [params.id]);
+  }, [params]);
 
   const handleSubmit = async (updatedExpert: Expert) => {
     try {
-      const response = await fetch(`/api/experts/${params.id}`, {
+      const response = await fetch(`/api/experts/${use(params).id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
         throw new Error('Failed to update expert');
       }
 
-      router.push(`/experts/${params.id}`);
+      router.push(`/experts/${use(params).id}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

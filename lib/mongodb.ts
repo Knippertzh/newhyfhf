@@ -68,74 +68,38 @@ export async function getUsersCollection() {
 // Standardize MongoDB document for frontend
 export function standardizeDocument(doc: any) {
   if (!doc) return null;
-  
-  // Create a deep copy to avoid modifying the original document
+
+  // Create a deep copy - this also converts ObjectId and Date to strings
   const standardized = JSON.parse(JSON.stringify(doc));
-  
-  // Convert ObjectId to string
-  if (doc._id && typeof doc._id === 'object') {
-    standardized._id = doc._id.toString();
+
+  // Ensure 'id' field exists, using the stringified _id
+  if (standardized._id && !standardized.id) {
+    standardized.id = standardized._id;
   }
   
-  // Recursive function to process nested objects and arrays
-  const processNestedFields = (obj: any) => {
-    if (!obj || typeof obj !== 'object') return;
-    
-    Object.keys(obj).forEach(key => {
-      // Convert ObjectId to string
-      if (key === '_id' && obj[key] && typeof obj[key] === 'object') {
-        obj[key] = obj[key].toString();
-      }
-      
-      // Convert Date objects to ISO strings
-      if (obj[key] instanceof Date) {
-        obj[key] = obj[key].toISOString();
-      }
-      // Process nested objects recursively
-      else if (obj[key] && typeof obj[key] === 'object') {
-        if (Array.isArray(obj[key])) {
-          // Process each item in the array
-          obj[key].forEach((item: any) => {
-            if (item && typeof item === 'object') {
-              processNestedFields(item);
-            }
-          });
-        } else {
-          // Process nested object
-          processNestedFields(obj[key]);
-        }
-      }
-    });
-  };
+  // The deep copy handles nested conversions. No need for complex recursion here.
+  // Let the calling API routes handle defaults based on context.
   
-  // Process all nested fields
-  processNestedFields(standardized);
-  
-  // Ensure arrays exist for expert-related array fields
-  const expertArrayFields = ['specializations', 'education', 'publications', 'projects'];
-  expertArrayFields.forEach(field => {
-    if (!standardized[field]) {
-      standardized[field] = [];
+  // Only apply expert-specific fields if the document appears to be an expert
+  // (checking for personalInfo or other expert-specific fields)
+  if (standardized.personalInfo || standardized.expertise || standardized.specializations) {
+    // Ensure 'personalInfo' field exists for experts
+    if (!standardized.personalInfo) {
+      standardized.personalInfo = {};
     }
-  });
-  
-  // Handle company-specific fields
-  if (standardized.name && typeof standardized.name === 'string') {
-    // This is likely a company document
-    if (!standardized.id && standardized._id) {
-      standardized.id = standardized._id;
+
+    // Ensure 'fullName', 'image', and 'title' fields exist within 'personalInfo'
+    if (!standardized.personalInfo.fullName) {
+      standardized.personalInfo.fullName = 'Unnamed Expert';
     }
-    
-    // Ensure company has required fields with defaults
-    if (!standardized.industry) standardized.industry = 'Technology';
-    if (!standardized.location) standardized.location = 'Global';
-    if (!standardized.description) {
-      standardized.description = `A company in the ${standardized.industry} industry.`;
+    if (!standardized.personalInfo.image) {
+      standardized.personalInfo.image = '/placeholder-user.jpg';
     }
-    if (!standardized.logoUrl) standardized.logoUrl = '/placeholder-logo.svg';
-    if (!standardized.expertCount && standardized.expertCount !== 0) standardized.expertCount = 0;
+    if (!standardized.personalInfo.title) {
+      standardized.personalInfo.title = 'AI Professional';
+    }
   }
-  
+
   return standardized;
 }
 

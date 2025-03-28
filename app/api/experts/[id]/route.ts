@@ -4,8 +4,13 @@ import { getExpertsCollection, standardizeDocument } from '@/lib/mongodb';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    const { id } = await params;
+    // In Next.js App Router, params needs to be properly handled
+    // The error suggests we need to await params before accessing its properties
+    const { id } = await Promise.resolve(params);
     let query = {};
+
+    // Add logging to help diagnose issues
+    console.log('Fetching expert with ID:', id);
 
     if (ObjectId.isValid(id)) {
       query = { _id: new ObjectId(id) };
@@ -17,12 +22,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
     const expert = await expertsCollection.findOne(query);
 
     if (!expert) {
+      console.log('Expert not found with ID:', id);
       return NextResponse.json(
         { error: 'Expert not found' },
         { status: 404 }
       );
     }
 
+    console.log('Found expert, standardizing document');
     const standardizedExpert = standardizeDocument(expert);
     return NextResponse.json(standardizedExpert);
   } catch (error) {
@@ -39,8 +46,13 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params;
+    // In Next.js App Router, params needs to be properly handled
+    // The error suggests we need to await params before accessing its properties
+    const { id } = await Promise.resolve(params);
     const body = await request.json();
+    
+    // Add logging to help diagnose issues
+    console.log('Updating expert with ID:', id);
 
     const expertsCollection = await getExpertsCollection();
 
