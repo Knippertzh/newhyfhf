@@ -47,19 +47,32 @@ export async function PUT(
 ) {
   try {
     // In Next.js App Router, params needs to be properly handled
-    // The error suggests we need to await params before accessing its properties
     const { id } = await Promise.resolve(params);
     const body = await request.json();
     
     // Add logging to help diagnose issues
     console.log('Updating expert with ID:', id);
 
+    // Validate ObjectId
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid expert ID' },
+        { status: 400 }
+      );
+    }
+    
+    // Remove _id from update data if present
+    const { _id, ...updateData } = body;
+    
+    // Add updated timestamp
+    updateData.updatedAt = new Date();
+
     const expertsCollection = await getExpertsCollection();
 
     // Update expert document
     const result = await expertsCollection.updateOne(
       { _id: new ObjectId(id) },
-      { $set: body }
+      { $set: updateData }
     );
 
     if (result.matchedCount === 0) {

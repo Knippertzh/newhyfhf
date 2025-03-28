@@ -1,11 +1,15 @@
 'use client';
 
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { ExpertForm } from '@/components/expert-form';
 import { Expert } from '@/lib/types';
 
 export default function ExpertEditPage({ params }: { params: { id: string } }) {
+  const unwrappedParams = React.use(params);
+  const id = unwrappedParams.id;
+  
   const router = useRouter();
   const [expert, setExpert] = useState<Expert | null>(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +18,6 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchExpert = async () => {
       try {
-        const id = use(params).id;
         const response = await fetch(`/api/experts/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch expert');
@@ -33,11 +36,11 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
     };
 
     fetchExpert();
-  }, [params]);
+  }, [id]);
 
   const handleSubmit = async (updatedExpert: Expert) => {
     try {
-      const response = await fetch(`/api/experts/${use(params).id}`, {
+      const response = await fetch(`/api/experts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +52,7 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
         throw new Error('Failed to update expert');
       }
 
-      router.push(`/experts/${use(params).id}`);
+      router.push(`/experts/${id}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -85,7 +88,11 @@ export default function ExpertEditPage({ params }: { params: { id: string } }) {
             company: formObject.company.toString(),
             expertise: formObject.expertise?.toString() || '',
             bio: formObject.bio?.toString() || '',
-            imageUrl: formObject.imageUrl.toString()
+            imageUrl: formObject.imageUrl.toString(),
+            email: formObject.email?.toString() || '',
+            website: formObject.website?.toString() || '',
+            linkedin: formObject.linkedin?.toString() || '',
+            twitter: formObject.twitter?.toString() || ''
           };
           await handleSubmit(updatedExpert);
         }}

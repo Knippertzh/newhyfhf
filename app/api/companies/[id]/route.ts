@@ -4,7 +4,8 @@ import { ObjectId } from 'mongodb';
 
 // GET /api/companies/[id] - Get a company by ID
 export async function GET(request: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+  // In Next.js App Router, params needs to be properly handled
+  const { id } = await Promise.resolve(context.params);
   try {
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {
@@ -36,7 +37,8 @@ export async function GET(request: NextRequest, context: { params: { id: string 
 
 // PUT /api/companies/[id] - Update a company
 export async function PUT(request: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+  // In Next.js App Router, params needs to be properly handled
+  const { id } = await Promise.resolve(context.params);
   try {
     const body = await request.json();
     
@@ -82,7 +84,8 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 
 // DELETE /api/companies/[id] - Delete a company
 export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+  // In Next.js App Router, params needs to be properly handled
+  const { id } = await Promise.resolve(context.params);
   try {
     // Validate ObjectId
     if (!ObjectId.isValid(id)) {

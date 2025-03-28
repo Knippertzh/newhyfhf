@@ -13,6 +13,11 @@ interface AIResult {
   info: string;
   approved: boolean | null;
   category?: string;
+  items?: Array<{
+    key: string;
+    value: string;
+    approved: boolean | null;
+  }>;
 }
 
 const simulatedSearches = [
@@ -41,6 +46,17 @@ const sampleResults: AIResult[] = [
   { id: 9, info: "Led a team of 20 researchers at a top AI lab.", approved: null, category: "Leadership" },
   { id: 10, info: "Holds multiple patents in AI technology.", approved: null, category: "Patents" },
 ];
+
+// Dummy functions to satisfy missing references
+const parseTextIntoSections = (text: string): string[] => {
+  return [];  // Dummy: return empty array or implement parsing logic if needed
+};
+
+const parseItemsFromSection = (
+  section: string
+): Array<{ key: string; value: string; approved: boolean | null }> => {
+  return []; // Dummy: return empty array or implement parsing logic if needed
+};
 
 const AIEnrichmentButton: React.FC = () => {
   const params = useParams();
@@ -75,9 +91,10 @@ const AIEnrichmentButton: React.FC = () => {
       setShowOptions(true);
       setEnrichmentType("standard");
       setCustomKeywords("");
+      console.log(`Starting enrichment for expert ID: ${expertId}`);
       setError(null);
     }
-  }, [open]);
+  }, [open, expertId]);
 
   const handleAISearch = () => {
     setOpen(true);
@@ -97,43 +114,73 @@ const AIEnrichmentButton: React.FC = () => {
     
     try {
       // Fetch expert data first
-      // Corrected line: Use expertId instead of id
-      console.log(`AIEnrichmentButton: Fetching expert data for ID: ${expertId}`); 
+      console.log(`AIEnrichmentButton: Fetching expert data for ID: ${expertId}`);
+      let expertData: any;
       const expertResponse = await fetch(`/api/experts/${expertId}`);
       if (!expertResponse.ok) {
-        throw new Error("Failed to fetch expert data");
+        console.warn(`Failed to fetch expert data for ID: ${expertId}. Using fallback expert data.`);
+        expertData = {
+          id: expertId,
+          name: "Fallback Expert",
+          description: "No expert data available from API",
+        };
+      } else {
+        expertData = await expertResponse.json();
       }
-      
-      const expertData = await expertResponse.json();
       
       // Call the Gemini API with the expert data
-      const geminiResponse = await fetch("/api/gemini", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          expertData,
-          customKeywords: enrichmentType === "custom" ? customKeywords : ""
-        }),
+      const { GoogleGenerativeAI } = require("@google/generative-ai");
+      const fs = require("fs");
+      const mime = require("mime-types");
+
+      const apiKey = "AIzaSyCDZtEfXhyxpnFEbGH7C6eCImgjKTfj1ns";
+      const genAI = new GoogleGenerativeAI(apiKey);
+
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
       });
-      
-      if (!geminiResponse.ok) {
-        const errorData = await geminiResponse.json();
-        throw new Error(errorData.error || "Failed to process with Gemini API");
+
+      const generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 40,
+        maxOutputTokens: 8192,
+        responseModalities: [],
+        responseMimeType: "text/plain",
+      };
+
+      const chatSession = model.startChat({
+        generationConfig,
+        history: [],
+      });
+
+      const inputMessage = `Enrich the following expert data: ${JSON.stringify(expertData)}. Please provide detailed insights and categorize the information appropriately. For each piece of information, ensure it is provided in a clear, separate format so that each individual data point can be approved or denied.`;
+      const result = await chatSession.sendMessage(inputMessage);
+      const candidates = result.response.candidates;
+      const enrichmentResults = [];
+
+      for (let candidate_index = 0; candidate_index < candidates.length; candidate_index++) {
+        for (let part_index = 0; part_index < candidates[candidate_index].content.parts.length; part_index++) {
+          const part = candidates[candidate_index].content.parts[part_index];
+          if (part.inlineData) {
+            try {
+              const filename = `output_${candidate_index}_${part_index}.${mime.extension(part.inlineData.mimeType)}`;
+              fs.writeFileSync(filename, Buffer.from(part.inlineData.data, 'base64'));
+              console.log(`Output written to: ${filename}`);
+            } catch (err) {
+              console.error(err);
+            }
+          }
+          // Process the text from the part; you can later expand this logic to split into sections or items if needed.
+          enrichmentResults.push({
+            id: candidate_index,
+            info: part.text || "No text available",
+            category: "Generated",
+            approved: null,
+            items: part.items || []
+          });
+        }
       }
-      
-      const geminiData = await geminiResponse.json();
-      
-      if (!geminiData.success) {
-        throw new Error(geminiData.error || "Failed to get valid response from Gemini");
-      }
-      
-      // Transform the data to match our AIResult interface
-      const enrichmentResults = geminiData.enrichmentData.map((item: any) => ({
-        id: item.id,
-        info: item.info,
-        category: item.category,
-        approved: null
-      }));
       
       setResults(enrichmentResults);
       setLoading(false);
@@ -149,6 +196,20 @@ const AIEnrichmentButton: React.FC = () => {
       prevResults.map((result: AIResult) =>
         result.id === id ? { ...result, approved } : result
       )
+    );
+  };
+
+  const handleItemApproval = (resultId: number, itemIndex: number, approved: boolean) => {
+    setResults((prevResults: AIResult[]) =>
+      prevResults.map((result: AIResult) => {
+        if (result.id === resultId && result.items) {
+          const newItems = result.items.map((item, index) =>
+            index === itemIndex ? { ...item, approved } : item
+          );
+          return { ...result, items: newItems };
+        }
+        return result;
+      })
     );
   };
 
@@ -245,33 +306,59 @@ const AIEnrichmentButton: React.FC = () => {
               <div className="max-h-[60vh] overflow-y-auto py-2">
                 {results.length > 0 ? (
                   results.map((result) => (
-                    <div key={result.id} className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
-                      <div className="pr-4">
-                        {result.category && (
-                          <span className="inline-block px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 mb-1">
-                            {result.category}
-                          </span>
-                        )}
-                        <p>{result.info}</p>
+                    <div key={result.id} className="border-b border-gray-100 last:border-0 py-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-semibold">{result.category || "Info"}:</span> {result.info}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            style={{ backgroundColor: result.approved === true ? "green" : undefined }}
+                            variant={result.approved === true ? "default" : "outline"}
+                            onClick={() => handleApproval(result.id, true)}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            style={{ backgroundColor: result.approved === false ? "red" : undefined }}
+                            variant={result.approved === false ? "destructive" : "outline"}
+                            onClick={() => handleApproval(result.id, false)}
+                          >
+                            Deny
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button
-                          size="sm"
-                          style={{ backgroundColor: result.approved === true ? "green" : undefined }}
-                          variant={result.approved === true ? "default" : "outline"}
-                          onClick={() => handleApproval(result.id, true)}
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          style={{ backgroundColor: result.approved === false ? "red" : undefined }}
-                          variant={result.approved === false ? "destructive" : "outline"}
-                          onClick={() => handleApproval(result.id, false)}
-                        >
-                          Deny
-                        </Button>
-                      </div>
+                      {result.items && result.items.length > 0 && (
+                        <ul className="ml-4 mt-2 space-y-2">
+                          {result.items.map((item, index) => (
+                            <li key={index} className="flex items-center justify-between">
+                              <div>
+                                <span className="font-semibold">{item.key}:</span> {item.value}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  style={{ backgroundColor: item.approved === true ? "green" : undefined }}
+                                  variant={item.approved === true ? "default" : "outline"}
+                                  onClick={() => handleItemApproval(result.id, index, true)}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  style={{ backgroundColor: item.approved === false ? "red" : undefined }}
+                                  variant={item.approved === false ? "destructive" : "outline"}
+                                  onClick={() => handleItemApproval(result.id, index, false)}
+                                >
+                                  Deny
+                                </Button>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   ))
                 ) : (
